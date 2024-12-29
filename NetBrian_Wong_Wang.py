@@ -37,6 +37,16 @@ alpha = 0.5 * kHz  # saturation of NMDA channels at high presynaptic firing rate
 C = 1 * mmole  # extracellular magnesium concentration
 
 
+# Synaptic conductances
+gextE = 2.496 * nS  # external -> excitatory neurons (AMPA)
+gextI = 1.944 * nS  # external -> inhibitory neurons (AMPA)
+gEEA = 0.104 * nS   # excitatory -> excitatory neurons (AMPA)
+gEIA = 0.081 * nS   # excitatory -> inhibitory neurons (AMPA)
+gEEN = 0.327 * nS   # excitatory -> excitatory neurons (NMDA)
+gEIN = 0.258 * nS  # excitatory -> inhibitory neurons (NMDA)
+gIE = 4.375 * nS  # inhibitory -> excitatory neurons (GABA)
+gII = 3.4055 * nS  # inhibitory -> inhibitory neurons (GABA)
+
 eqs = """
 dvm/dt=(gL*(EL-vm) + I - I_AMPA - I_NMDA - I_GABA -  I_AMPA_ext)/Cm : volt (unless refractory)
 
@@ -49,10 +59,11 @@ ds_GABA / dt = - s_GABA / tau_GABA : siemens
 I_AMPA_ext = s_AMPA_ext * (vm - V_E) : amp  
 ds_AMPA_ext / dt = - s_AMPA_ext / tau_AMPA : siemens
 
-I_NMDA = gEEN * s_NMDA_tot * (vm - V_E) / ( 1 + exp(-0.062 * vm/mvolt) ) : amp
+I_NMDA = gEN * s_NMDA_tot * (vm - V_E) / ( 1 + exp(-0.062 * vm/mvolt) ) : amp
 s_NMDA_tot : 1
 ds_NMDA / dt = - s_NMDA / tau_NMDA_decay + alpha * x * (1 - s_NMDA) : 1
 dx / dt = - x / tau_NMDA_rise : 1
+gEN : siemens
 
 
 Vr:volt
@@ -74,6 +85,7 @@ G_inh.vm = -60*mV#EL
 G_inh.EL=-67*mV
 G_inh.Vr = -65*mV #
 G_inh.VT=-50.*mV
+G_inh.gEN = gEIN
 
 
 
@@ -84,6 +96,7 @@ G_exc.vm = -60*mV#EL
 G_exc.EL=-63*mV
 G_exc.Vr = -65*mV 
 G_exc.VT=-50.*mV
+G_exc.gEN = gEEN
 
 
 # external drive--------------------------------------------------------------------------
@@ -93,17 +106,7 @@ P_ed=PoissonGroup(N2, rates=10*Hz)
 # Network-----------------------------------------------------------------------------
 
 # connections-----------------------------------------------------------------------------
-prbC=0.1 #0.05
-
-# Synaptic conductances
-gextE = 2.496 * nS  # external -> excitatory neurons (AMPA)
-gextI = 1.944 * nS  # external -> inhibitory neurons (AMPA)
-gEEA = 0.104 * nS   # excitatory -> excitatory neurons (AMPA)
-gEIA = 0.081 * nS   # excitatory -> inhibitory neurons (AMPA)
-gEEN = 0.327 * nS   # excitatory -> excitatory neurons (NMDA)
-gEIN = 0.258 * nS  # excitatory -> inhibitory neurons (NMDA)
-gIE = 4.375 * nS  # inhibitory -> excitatory neurons (GABA)
-gII = 3.4055 * nS  # inhibitory -> inhibitory neurons (GABA)
+prbC=1 #0.05
  
 
 S_AMPA_EE = Synapses(G_exc, G_exc, on_pre='s_AMPA_post+=1.55*gEEA',) 
